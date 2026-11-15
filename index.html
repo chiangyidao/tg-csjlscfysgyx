@@ -494,7 +494,7 @@ function openV(id,clip){
   $('#mod').style.display='block';document.body.style.overflow='hidden';
   A=clip?clip.a:null;B=clip?clip.b:null;loop=!!clip;loopN=0;stopShadow();
   $('#rating').value=p.rating;$('#bDone').textContent=p.done?'✓ 已完成（取消）':'標記完成';
-  const start=clip?clip.a:(p.last>5&&p.last<cur.s-10?p.last:0);
+  const INTRO=11;const start=clip?clip.a:(p.last>INTRO+1&&p.last<cur.s-10?p.last:INTRO);
   mkPlayer(start);
   if(clip)setTimeout(()=>{try{yt.playVideo()}catch(e){}},800);
   $('#mSum').innerHTML='<b>影片摘要</b>　'+esc(cur.sum||'（無官方介紹文）')+(cur.pd?` <span class="muted">｜上架 ${cur.pd}</span>`:'');renderVoc();
