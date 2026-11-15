@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
-  <meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>台語聽有無｜業務台語學習儀表板</title>
 <style>
 :root{--bg:#f5f6f8;--card:#fff;--ink:#1d2330;--mute:#667085;--line:#e3e6ec;--pri:#0f6e5a;--pri2:#e6f4f0;--acc:#c2410c;--warn:#fff7e6;
@@ -71,6 +71,16 @@ table.lib td .r{color:var(--acc)}
 .card .st{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;border-radius:6px;padding:2px 6px}
 .card .st.done{background:#15803d}
 .card .st.ing{background:#b45309}
+.recrow{margin-bottom:10px}
+.recrow>b{display:block;font-size:13px;margin-bottom:4px}
+.recrow .why{font-weight:400;color:var(--mute);font-size:12px;margin-left:6px}
+.reccards{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.rc{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:6px;cursor:pointer;background:#fff}
+.rc:hover{border-color:var(--pri);box-shadow:0 3px 10px rgba(0,0,0,.06)}
+.rc img{width:76px;height:43px;object-fit:cover;border-radius:6px;flex:none;background:#dfe3e8}
+.rc .ic{width:76px;height:43px;border-radius:6px;flex:none;background:#0f6e5a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px}
+.rc .x{font-size:13px;font-weight:600;line-height:1.3}
+.rc .y{font-size:11px;color:var(--mute)}
 .tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
 .muted{color:var(--mute);font-size:12px}
 /* modal player */
@@ -113,62 +123,66 @@ kbd{background:#eef0f3;border-radius:4px;padding:0 5px;font-size:11px;border:1px
 <body>
 <header>
   <h1>台語聽有無｜業務台語學習儀表板</h1>
-  <p>資料來源：鏡新聞 YouTube「台語聽有無」播放清單（擷取日 115年11月15日，197 部，排除 1 部無關影片）；真平語文 114 全國語文競賽臺灣台語朗讀授權錄音檔｜主題分類為本儀表板依標題自行歸類</p>
+  <p>資料來源：鏡新聞 YouTube「台語聽有無」播放清單（擷取日 115年11月15日，197 部，排除 1 部無關影片）；真平語文 109～114 年全國語文競賽臺灣台語朗讀授權錄音檔｜主題分類為本儀表板依標題自行歸類</p>
 </header>
 <div class="wrap">
   <div class="banner" id="fileBanner" style="display:block">⚠ <b>此網頁需在電腦的瀏覽器中執行，不能在 Claude 對話視窗內預覽使用</b>（預覽視窗會封鎖按鈕程式與 YouTube 播放）。<br>
 使用步驟：①下載「1151115-台語聽有無學習儀表板.html」及「啟動台語學習網頁.bat」，放在<b>同一資料夾</b>；②點兩下 <b>.bat</b>，會自動以 Chrome／Edge 開啟 http://localhost:8765；③使用期間請勿關閉黑色視窗。<br>
 <span class="muted">說明：YouTube 不允許「直接點兩下 .html（file://）」內嵌播放（錯誤 153），故需透過 .bat 啟動本機網址。</span></div>
-  <div class="kpis" id="kpis"></div>
-  <div class="grid2">
-    <div>
-      <div class="panel">
-        <h2>主題分類 <button class="btn" id="allCat">全部</button></h2>
+  <div class="panel" id="recPanel" style="margin-bottom:14px">
+    <h2><span id="recTitle">📅 今日推薦</span><span class="row"><button class="btn" id="recShuffle">🎲 換一批</button></span></h2>
+    <div id="rec"></div>
+  </div>
+  <div class="panel">
+    <div class="tabs">
+      <button class="btn on" data-view="videos">影片總覽</button>
+      <button class="btn" data-view="jen">🎙 真平朗讀</button>
+      <button class="btn" data-view="voc">詞彙總表</button>
+      <button class="btn" data-view="lib">我的片段庫</button>
+    </div>
+    <div class="row">
+      <input type="search" id="q" placeholder="查詢主題或已收藏的台語詞、華語、備註（例：颱風、空氣、詐騙）" style="flex:1;min-width:240px">
+      <select id="fCatSel"><option value="">全部主題</option></select>
+      <select id="fStatus"><option value="">全部狀態</option><option value="todo">未開始</option><option value="ing">學習中</option><option value="done">已完成</option></select>
+      <select id="fSort"><option value="r">每日隨機</option><option value="n">清單順序</option><option value="s">片長短→長</option><option value="t">主題名稱</option></select>
+      <button class="btn" id="bizOnly">只看業務相關</button>
+    </div>
+    <div id="viewVideos"><div class="muted" id="resInfo" style="margin-top:8px"></div><div class="cards" id="cards"></div></div>
+    <div id="viewLib" style="display:none;margin-top:10px"></div>
+    <div id="viewVoc" style="display:none;margin-top:10px"></div>
+    <div id="viewJen" style="display:none;margin-top:10px"></div>
+  </div>
+  <details class="panel" style="margin-top:14px" id="statBox">
+    <summary style="cursor:pointer;font-weight:700">📊 學習統計與主題分類（點此展開）</summary>
+    <div class="kpis" id="kpis" style="margin-top:10px"></div>
+    <div class="grid2">
+      <div>
+        <h2 style="font-size:15px">主題分類 <button class="btn" id="allCat">全部</button></h2>
         <div id="bars"></div>
-        <div class="muted" style="margin-top:6px">深色＝已完成比例；<span class="tag biz">業務</span>＝與環境、資訊、施政溝通較相關之主題</div>
+        <div class="muted" style="margin-top:6px">深色＝已完成比例；<span class="tag biz">業務</span>＝與環境、資訊、施政溝通較相關之主題；點主題可篩選影片</div>
       </div>
-      <div class="panel" style="margin-top:14px">
-        <h2>今日學習建議</h2>
+      <div>
+        <h2 style="font-size:15px">接續學習</h2>
         <div id="today"></div>
       </div>
-      <div class="panel" style="margin-top:14px">
-        <h2>使用說明</h2>
-        <div class="muted" style="line-height:1.7">
-        1、點選影片卡片開啟練習視窗，右側依「5 步驟」引導學習。<br>
-        2、「分段」每段 20 秒，可點選跳播；設定 A／B 點可循環重播任一片段。<br>
-        3、「跟讀模式」：播一段→自動暫停同長度讓您複誦，可設定次數。<br>
-        4、聽到實用詞句，按「收藏片段」記下台語詞與華語，之後可於「我的片段庫」查詢並一鍵回放。<br>
-        5、快捷鍵：<kbd>空白</kbd>播放/暫停 <kbd>←</kbd><kbd>→</kbd>前後 5 秒 <kbd>A</kbd><kbd>B</kbd>設定區段 <kbd>L</kbd>循環 <kbd>S</kbd>跟讀 <kbd>Esc</kbd>關閉<br>
-        6、學習紀錄存於本機瀏覽器；可「匯出」備份或換電腦「匯入」。
-        </div>
-        <div class="row" style="margin-top:8px">
-          <button class="btn" id="expJson">匯出紀錄(JSON)</button>
-          <button class="btn" id="expCsv">匯出片段庫(CSV)</button>
-          <label class="btn">匯入紀錄<input type="file" id="impJson" accept=".json" hidden></label>
-        </div>
-      </div>
     </div>
-    <div>
-      <div class="panel">
-        <div class="tabs">
-          <button class="btn on" data-view="videos">影片總覽</button>
-          <button class="btn" data-view="jen">🎙 真平朗讀</button>
-          <button class="btn" data-view="voc">詞彙總表</button>
-          <button class="btn" data-view="lib">我的片段庫</button>
-        </div>
-        <div class="row">
-          <input type="search" id="q" placeholder="查詢主題或已收藏的台語詞、華語、備註（例：颱風、空氣、詐騙）" style="flex:1;min-width:240px">
-          <select id="fStatus"><option value="">全部狀態</option><option value="todo">未開始</option><option value="ing">學習中</option><option value="done">已完成</option></select>
-          <select id="fSort"><option value="n">清單順序</option><option value="s">片長短→長</option><option value="t">主題名稱</option></select>
-          <button class="btn" id="bizOnly">只看業務相關</button>
-        </div>
-        <div id="viewVideos"><div class="muted" id="resInfo" style="margin-top:8px"></div><div class="cards" id="cards"></div></div>
-        <div id="viewLib" style="display:none;margin-top:10px"></div>
-        <div id="viewVoc" style="display:none;margin-top:10px"></div>
-        <div id="viewJen" style="display:none;margin-top:10px"></div>
-      </div>
+  </details>
+  <details class="panel" style="margin-top:14px">
+    <summary style="cursor:pointer;font-weight:700">ℹ️ 使用說明與紀錄備份</summary>
+    <div class="muted" style="line-height:1.7;margin-top:8px">
+    1、點選影片卡片開啟練習視窗，右側依「5 步驟」引導學習。<br>
+    2、「分段」每段 20 秒，可點選跳播；設定 A／B 點可循環重播任一片段。<br>
+    3、「跟讀模式」：播一段→自動暫停同長度讓您複誦，可設定次數。<br>
+    4、聽到實用詞句，按「收藏片段」記下台語詞與華語，之後可於「我的片段庫」查詢並一鍵回放。<br>
+    5、快捷鍵：<kbd>空白</kbd>播放/暫停 <kbd>←</kbd><kbd>→</kbd>前後 5 秒 <kbd>A</kbd><kbd>B</kbd>設定區段 <kbd>L</kbd>循環 <kbd>S</kbd>跟讀 <kbd>Esc</kbd>關閉<br>
+    6、學習紀錄存於本機瀏覽器；可「匯出」備份或換裝置「匯入」。
     </div>
-  </div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn" id="expJson">匯出紀錄(JSON)</button>
+      <button class="btn" id="expCsv">匯出片段庫(CSV)</button>
+      <label class="btn">匯入紀錄<input type="file" id="impJson" accept=".json" hidden></label>
+    </div>
+  </details>
 </div>
 
 <div id="jmod" style="position:fixed;inset:0;background:rgba(10,20,30,.55);display:none;z-index:60;overflow:auto"><div class="box" style="background:#fff;max-width:1200px;margin:20px auto;border-radius:14px;padding:16px;display:grid;grid-template-columns:1fr 380px;gap:16px">
@@ -331,7 +345,7 @@ function filtered(){
   let r=V.filter(v=>(!fCat||v.c===fCat)&&(!biz||BIZ.includes(v.c))&&(!st||status(v.id)===st));
   if(q)r=r.filter(v=>(v.t+CAT[v.c]+(v.sum||'')+wTxt(v)).toLowerCase().includes(q)||clipsOf(v.id).some(c=>(c.w+c.m+c.n).toLowerCase().includes(q)));
   const so=$('#fSort').value;
-  r.sort(so==='s'?(a,b)=>a.s-b.s:so==='t'?(a,b)=>a.t.localeCompare(b.t,'zh-Hant'):(a,b)=>a.n-b.n);
+  if(so==='r'){const o=dayOrder();r.sort((a,b)=>o[a.id]-o[b.id])}else r.sort(so==='s'?(a,b)=>a.s-b.s:so==='t'?(a,b)=>a.t.localeCompare(b.t,'zh-Hant'):(a,b)=>a.n-b.n);
   return r;
 }
 function renderCards(){
@@ -362,8 +376,51 @@ function renderToday(){
    +'<div class="muted">每日 1～2 部（約 10 分鐘），優先業務相關主題。</div>':'<p>全部完成，太厲害了！</p>';
   document.querySelectorAll('#today [data-id]').forEach(c=>c.onclick=()=>openV(c.dataset.id));
 }
-function renderAll(cards=true){renderKpis();renderBars();renderToday();if(view==='videos'){if(cards)renderCards()}else if(view==='lib')renderLib();else if(view==='jen')renderJen();else renderVocAll()}
+/* ---------- 每日隨機與時令推薦 ---------- */
+const NOW=new Date();const DKEY=NOW.getFullYear()*10000+(NOW.getMonth()+1)*100+NOW.getDate();let shuf=0;
+function rng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+function shuffled(arr,seed){const r=rng(seed),x=[...arr];for(let i=x.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[x[i],x[j]]=[x[j],x[i]]}return x}
+let _ord=null;function dayOrder(){if(!_ord){_ord={};shuffled(V,DKEY).forEach((v,i)=>_ord[v.id]=i)}return _ord}
+const SEASON=[
+ {m:[1,2],l:'寒冬過年',k:['過年','圍爐','元宵','燈謎','情人節','寒冷','天冷','好話','泡菜','柑橘','冬季','進補','溫泉','滑雪']},
+ {m:[3],l:'春天時節',k:['婦女','性別','林業','花草','春季','清明','雨相關','復活節','露營','爬山']},
+ {m:[4],l:'清明・春雨',k:['清明','潤餅','媽祖','遶境','雨相關','復活節','黑鮪魚','春季','蜂種']},
+ {m:[5],l:'初夏・報稅季',k:['報稅','端午','肉粽','游泳','快篩','蜂種','乒乓','足球']},
+ {m:[6],l:'端午・悶熱',k:['端午','肉粽','悶熱','冰相關','熱病','颱風','水災','飲料','筍']},
+ {m:[7,8],l:'盛夏・颱風季',k:['颱風','水災','熱病','七夕','鬼月','普渡','游泳','冰相關','鰻魚','飛魚','海洋','地震','樂園','咖啡']},
+ {m:[9],l:'中秋・秋颱',k:['中秋','月餅','月亮','颱風','糕餅','柚','廟宇','泡麵']},
+ {m:[10],l:'秋天景緻',k:['秋天','柿子','外交','核武','軍艦','極圈','花草']},
+ {m:[11],l:'秋收入冬',k:['稻米','秋天','冬季水果','柑橘','選舉','溫泉','滑雪','寒冷','螃蟹']},
+ {m:[12],l:'冬至・歲末',k:['冬至','耶誕','寒冷','心血管','進補','冬季','溫泉','天冷','感冒']}];
+const EVENTS=[[2,14,'情人節',['情人節','戀愛','愛情']],[2,21,'世界母語日',['母語','族群']],[3,8,'婦女節',['婦女','性別']],[3,21,'世界林業日',['林業','花草','樹']],[4,22,'世界地球日',['空氣','水循環','外來物種','海龜','減塑','環境']],[6,5,'世界環境日',['空氣','山火','發電','水循環','減塑','海龜']],[8,8,'父親節',['阿爸','爸仔']],[9,28,'教師節',['老師','教師','師父']],[12,25,'耶誕節',['耶誕']]];
+const SLOT=[[5,10,'早晨',['早餐','早頓','早午餐','飲料','咖啡','漢堡','豆花']],[10,14,'午餐時段',['食晝','便當','點心','滋味','泡麵','吃相關','口感']],[14,17,'午後',['咖啡','飲料','冰相關','點心','四秀仔','豆花']],[17,21,'晚餐時段',['夜市','暗頓','圍爐','飲酒','酒相關','調酒','臭豆腐']],[21,29,'夜晚',['睡眠','月亮','星座','天文','宇宙','鬼怪']]];
+const hasK=(s,ks)=>ks.some(k=>s.includes(k));
+const unfinishedFirst=(arr)=>[...arr].sort((a,b)=>(status(a.id)==='done')-(status(b.id)==='done'));
+function pickV(ks,n,seed,excl){const m=V.filter(v=>hasK(v.t,ks)&&!excl.has(v.id));return unfinishedFirst(shuffled(m,seed)).slice(0,n)}
+function pickJ(ks,n,seed,excl){const m=JEN.filter(e=>hasK(e.t+e.sum,ks)&&!excl.has(e.id));return shuffled(m,seed).slice(0,n)}
+const vCard=v=>`<div class="rc" data-rv="${v.id}"><img loading="lazy" src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt=""><div><div class="x">${esc(v.t)}</div><div class="y">${CAT[v.c]}｜${fmt(v.s)}${status(v.id)==='done'?'｜✓':''}</div></div></div>`;
+const jCard=e=>`<div class="rc" data-rj="${e.id}"><div class="ic">🎙</div><div><div class="x">${esc(e.t)}</div><div class="y">真平朗讀｜${e.y}${e.g}組${e.u?'':'｜無音檔'}</div></div></div>`;
+function renderRec(){
+  const M=NOW.getMonth()+1,Dd=NOW.getDate(),Hr=NOW.getHours(),seed=DKEY*7+shuf*101,ex=new Set(),wk='日一二三四五六'[NOW.getDay()];
+  const ses=SEASON.find(s=>s.m.includes(M)),slot=SLOT.find(s=>(Hr>=s[0]&&Hr<s[1])||(Hr+24>=s[0]&&Hr+24<s[1]));
+  const ev=EVENTS.filter(e=>{const d=new Date(NOW.getFullYear(),e[0]-1,e[1]);const diff=(d-NOW)/864e5;return diff>-2&&diff<10});
+  $('#recTitle').textContent=`📅 ${NOW.getFullYear()-1911}年${M}月${Dd}日（星期${wk}）${slot?slot[2]:''}｜今日推薦`;
+  const rows=[];const add=(lab,why,items)=>{items.forEach(x=>ex.add(x.id));if(items.length)rows.push(`<div class="recrow"><b>${lab}<span class="why">${why}</span></b><div class="reccards">${items.map(x=>byId[x.id]===x?vCard(x):jCard(x)).join('')}</div></div>`)};
+  ev.forEach(e=>add(`🎉 ${e[2]}`,`${e[0]}/${e[1]} 應景主題`,[...pickV(e[3],3,seed+e[1],ex),...pickJ(e[3],1,seed+e[1],ex)]));
+  if(ses)add(`🍂 時令主題：${ses.l}`,`依 ${M} 月節令與天候挑選`,[...pickV(ses.k,4,seed+1,ex),...pickJ(ses.k,1,seed+2,ex)]);
+  if(slot)add(`⏰ ${slot[2]}來點`,`依現在時段（${Hr} 點）推薦`,pickV(slot[3],2,seed+3,ex));
+  const biz=unfinishedFirst(shuffled(V.filter(v=>BIZ.includes(v.c)&&!ex.has(v.id)),seed+4)).slice(0,2);add('💼 業務必修','環境・科技・政經主題，優先未完成',biz);
+  const rv=unfinishedFirst(shuffled(V.filter(v=>!ex.has(v.id)),seed+5)).slice(0,3),rj=shuffled(JEN.filter(e=>e.u&&!ex.has(e.id)),seed+6).slice(0,1);add('🎲 隨機探索','每天自動換一組；按「換一批」可再抽',[...rv,...rj]);
+  $('#rec').innerHTML=rows.join('');
+  document.querySelectorAll('[data-rv]').forEach(c=>c.onclick=()=>openV(c.dataset.rv));
+  document.querySelectorAll('[data-rj]').forEach(c=>c.onclick=()=>openJ(c.dataset.rj));
+}
+$('#recShuffle').onclick=()=>{shuf++;renderRec()};
+$('#fCatSel').innerHTML='<option value="">全部主題</option>'+Object.entries(CAT).map(([k,n])=>`<option value="${k}">${n}</option>`).join('');
+$('#fCatSel').onchange=e=>{fCat=e.target.value;renderAll()};
+function renderAll(cards=true){renderKpis();renderBars();renderToday();renderRec();$('#fCatSel').value=fCat;if(view==='videos'){if(cards)renderCards()}else if(view==='lib')renderLib();else if(view==='jen')renderJen();else renderVocAll()}
 $('#allCat').onclick=()=>{fCat='';renderAll()};
+document.addEventListener('click',e=>{if(e.target.closest('.bar'))setTimeout(()=>document.querySelector('[data-view=videos]').scrollIntoView({behavior:'smooth'}),50)});
 $('#bizOnly').onclick=e=>{biz=!biz;e.target.classList.toggle('on',biz);renderAll()};
 ['#q','#fStatus','#fSort'].forEach(s=>$(s).addEventListener('input',()=>renderAll()));
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{view=b.dataset.view;document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('on',x===b));
@@ -591,7 +648,7 @@ async function loadScript(e){SEN=[];senCur=-1;$('#jPdfFrame').style.display='non
     $('#jScript').innerHTML=SEN.map((x,k)=>`<span class="sen" data-sn="${k}">${e.u?`<span class="ts">${fmt(x.t)}</span>`:''}${esc(x.s)}</span>`).join('');
     $('#jScriptNote').textContent=e.u?'講稿由真平原始 PDF 即時載入；句子時間依字數與朗讀停頓推估，可能有數秒誤差。按句子即從該句播放，搭配「循環」可反覆練習該句。':'講稿由真平原始 PDF 即時載入（本篇無音檔）。';
     document.querySelectorAll('[data-sn]').forEach(el=>el.onclick=()=>{if(!e.u)return;const k=+el.dataset.sn;jA=SEN[k].t;jB=k+1<SEN.length?Math.max(SEN[k+1].t,jA+1):(ja.duration||e.d);jLoopN=0;ja.currentTime=jA;ja.play().catch(()=>{});jUpd();senHL(jA,true)});
-  }catch(err){if(jcur===e)showPdf(e,'無法即時擷取講稿文字（請用「啟動台語學習網頁.bat」開啟才能使用句子對應功能），改為顯示原始講稿 PDF 第 '+e.pg+' 頁。')}}
+  }catch(err){if(jcur===e)showPdf(e,(location.hostname.endsWith('github.io')?'線上版無法讀取真平講稿文字，改為顯示原始講稿 PDF 第 '+e.pg+' 頁（逐句對應請用電腦 .bat 版）。':'無法即時擷取講稿文字（請用「啟動台語學習網頁.bat」開啟才能使用句子對應功能），改為顯示原始講稿 PDF 第 '+e.pg+' 頁。'))}}
 function senHL(t,force){if(!SEN.length||!jcur||!jcur.u)return;let k=-1;for(let i=0;i<SEN.length;i++)if(t>=SEN[i].t-0.05)k=i;
   if(k===senCur&&!force)return;senCur=k;document.querySelectorAll('.sen.cur').forEach(x=>x.classList.remove('cur'));
   const el=document.querySelector(`[data-sn="${k}"]`);if(el){el.classList.add('cur');if(jFollow){const box=$('#jScript');box.scrollTop=el.offsetTop-box.offsetTop-box.clientHeight/3}}}
